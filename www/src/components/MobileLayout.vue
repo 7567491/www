@@ -85,21 +85,40 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   padding: 20px;
+  position: relative;
+}
+
+.mobile-layout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .phone-frame {
   width: 375px;
   height: 812px;
-  background: #000;
-  border-radius: 40px;
-  padding: 8px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(145deg, #1a1a1a, #000);
+  border-radius: 42px;
+  padding: 6px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.1),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .status-bar {
@@ -134,42 +153,63 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 60px;
-  padding: 0 20px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 70px;
+  padding: 0 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
 }
 
 .app-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .refresh-btn {
-  background: none;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
-  padding: 8px;
-  border-radius: 50%;
+  padding: 12px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  color: white;
 }
 
 .refresh-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .refresh-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .refresh-icon {
-  font-size: 18px;
+  font-size: 20px;
   display: inline-block;
   transition: transform 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
 .refresh-icon.spinning {
@@ -183,9 +223,10 @@ onUnmounted(() => {
 
 .app-content {
   flex: 1;
-  background: #f5f5f5;
+  background: transparent;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 .home-indicator {
@@ -225,18 +266,32 @@ onUnmounted(() => {
 
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
+  .mobile-layout {
+    background: linear-gradient(135deg, #2d1b69 0%, #11998e 50%, #38097a 100%);
+  }
+  
+  .phone-frame {
+    background: linear-gradient(145deg, #000, #1a1a1a);
+    box-shadow: 
+      0 25px 50px rgba(0, 0, 0, 0.8),
+      0 0 0 2px rgba(255, 255, 255, 0.1),
+      inset 0 2px 4px rgba(255, 255, 255, 0.05);
+  }
+  
   .app-header {
-    background: #1a1a1a;
-    border-bottom-color: #333;
-    color: #fff;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .app-header::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   }
   
   .app-title {
-    color: #fff;
-  }
-  
-  .app-content {
-    background: #000;
+    background: linear-gradient(135deg, #60a5fa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 </style>

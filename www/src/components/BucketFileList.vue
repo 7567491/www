@@ -1,5 +1,26 @@
 <template>
   <div class="file-list">
+    <!-- 面包屑导航 -->
+    <div v-if="breadcrumbs.length > 0 || currentPrefix" class="breadcrumb-nav">
+      <button @click="navigateToRoot" class="breadcrumb-item root">
+        🏠 根目录
+      </button>
+      <span v-if="breadcrumbs.length > 0" class="breadcrumb-separator">/</span>
+      <template v-for="(crumb, index) in breadcrumbs" :key="crumb.path">
+        <button
+          @click="navigateToPath(crumb.path)"
+          class="breadcrumb-item"
+          :class="{ 'current': index === breadcrumbs.length - 1 }"
+        >
+          {{ crumb.name }}
+        </button>
+        <span v-if="index < breadcrumbs.length - 1" class="breadcrumb-separator">/</span>
+      </template>
+      <button v-if="currentPrefix" @click="navigateBack" class="back-btn">
+        ← 返回上级
+      </button>
+    </div>
+
     <!-- 搜索栏 -->
     <div class="search-bar">
       <div class="search-input-wrapper">
@@ -93,6 +114,8 @@ const filteredFiles = computed(() => bucketStore.filteredFiles)
 const loading = computed(() => bucketStore.loading)
 const error = computed(() => bucketStore.error)
 const formattedTotalSize = computed(() => bucketStore.formattedTotalSize)
+const breadcrumbs = computed(() => bucketStore.breadcrumbs)
+const currentPrefix = computed(() => bucketStore.currentPrefix)
 
 // 方法
 function handleSearch() {
@@ -128,11 +151,24 @@ function formatDate(dateString: string): string {
 
 function handleFileClick(file: BucketFile) {
   if (file.type === 'folder') {
-    // 处理文件夹点击 - 可以在这里实现文件夹导航
-    console.log('点击文件夹:', file.key)
+    // 导航到文件夹
+    bucketStore.navigateToFolder(file.key)
   } else {
     openFile(file)
   }
+}
+
+// 导航功能
+function navigateToRoot() {
+  bucketStore.navigateToRoot()
+}
+
+function navigateBack() {
+  bucketStore.navigateBack()
+}
+
+function navigateToPath(path: string) {
+  bucketStore.loadFiles(path)
 }
 
 function openFile(file: BucketFile) {
@@ -166,66 +202,157 @@ function copyUrl(file: BucketFile) {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb-item {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.breadcrumb-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.breadcrumb-item.root {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  color: white;
+  font-weight: 600;
+}
+
+.breadcrumb-item.current {
+  background: linear-gradient(135deg, #fa709a, #fee140);
+  color: #333;
+  cursor: default;
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: #667eea;
+  margin: 0 4px;
+  font-weight: bold;
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
 }
 
 .search-bar {
-  padding: 16px;
-  background: #fff;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .search-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 25px;
+  padding: 0 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #667eea;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
 }
 
 .search-icon {
-  font-size: 16px;
-  margin-right: 8px;
-  color: #666;
+  font-size: 18px;
+  margin-right: 12px;
+  color: #667eea;
 }
 
 .search-input {
   flex: 1;
   border: none;
   background: none;
-  padding: 12px 0;
+  padding: 14px 0;
   font-size: 16px;
   outline: none;
   color: #333;
+  font-weight: 500;
 }
 
 .search-input::placeholder {
   color: #999;
+  font-weight: 400;
 }
 
 .clear-search {
-  background: none;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
   border: none;
-  color: #666;
-  font-size: 16px;
+  color: white;
+  font-size: 14px;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .clear-search:hover {
-  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 
 .stats-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e5e5e5;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   font-size: 14px;
-  color: #666;
+  color: #5a67d8;
+  font-weight: 600;
 }
 
 .loading-container {
@@ -233,18 +360,23 @@ function copyUrl(file: BucketFile) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  color: #666;
+  padding: 80px 20px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  margin: 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3b82f6;
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
 }
 
 @keyframes spin {
@@ -256,90 +388,115 @@ function copyUrl(file: BucketFile) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
 
 .error-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 64px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 0 10px rgba(255, 107, 107, 0.3));
 }
 
 .error-message {
-  color: #dc2626;
-  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 25px;
   font-size: 16px;
+  font-weight: 500;
 }
 
 .retry-btn {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 25px;
   font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .retry-btn:hover {
-  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .files-container {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 10px 20px 20px;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
   text-align: center;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
 
 .empty-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-  opacity: 0.5;
+  font-size: 80px;
+  margin-bottom: 25px;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
 }
 
 .empty-state h3 {
-  margin: 0 0 8px 0;
-  color: #333;
+  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .empty-state p {
   margin: 0;
   font-size: 14px;
+  opacity: 0.8;
 }
 
 .file-item {
   display: flex;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-  background: #fff;
+  padding: 18px 20px;
+  margin-bottom: 8px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.95);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .file-item:hover {
-  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
 }
 
 .file-item:active {
-  background: #e9ecef;
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .file-icon {
-  font-size: 24px;
-  margin-right: 16px;
-  min-width: 32px;
+  font-size: 28px;
+  margin-right: 20px;
+  min-width: 40px;
   text-align: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .file-info {
@@ -348,9 +505,9 @@ function copyUrl(file: BucketFile) {
 }
 
 .file-name {
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: #333;
   white-space: nowrap;
   overflow: hidden;
@@ -359,41 +516,62 @@ function copyUrl(file: BucketFile) {
 
 .file-details {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   font-size: 14px;
   color: #666;
+  font-weight: 500;
 }
 
 .file-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 .action-btn {
-  background: none;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border: none;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  padding: 10px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.action-btn:nth-child(2) {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
 }
 
 /* 深色模式适配 */
 @media (prefers-color-scheme: dark) {
-  .search-bar,
-  .file-item {
-    background: #1a1a1a;
-    border-color: #333;
-    color: #fff;
+  .file-list {
+    background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%);
+  }
+  
+  .breadcrumb-nav {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .search-bar {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
   }
   
   .search-input-wrapper {
-    background: #333;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   
   .search-input {
@@ -401,25 +579,36 @@ function copyUrl(file: BucketFile) {
   }
   
   .search-input::placeholder {
-    color: #999;
+    color: rgba(255, 255, 255, 0.6);
   }
   
   .stats-bar {
-    background: #2a2a2a;
-    border-color: #333;
-    color: #ccc;
+    background: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .file-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .file-item:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
   
   .file-name {
     color: #fff;
   }
   
-  .file-item:hover {
-    background: #333;
+  .file-details {
+    color: rgba(255, 255, 255, 0.7);
   }
   
-  .file-item:active {
-    background: #444;
+  .loading-container,
+  .error-container,
+  .empty-state {
+    background: rgba(0, 0, 0, 0.3);
   }
 }
 </style>

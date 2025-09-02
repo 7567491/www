@@ -78,6 +78,44 @@ export const useBucketStore = defineStore('bucket', () => {
     return bucketService.getFileIcon(filename)
   }
 
+  // 导航功能
+  function navigateToFolder(folderKey: string) {
+    loadFiles(folderKey)
+  }
+
+  function navigateBack() {
+    if (currentPrefix.value) {
+      // 获取父目录路径
+      const pathParts = currentPrefix.value.split('/').filter(part => part)
+      pathParts.pop() // 移除最后一个部分
+      const parentPrefix = pathParts.length > 0 ? pathParts.join('/') + '/' : ''
+      loadFiles(parentPrefix)
+    }
+  }
+
+  function navigateToRoot() {
+    loadFiles('')
+  }
+
+  // 获取面包屑导航数据
+  const breadcrumbs = computed(() => {
+    if (!currentPrefix.value) return []
+    
+    const parts = currentPrefix.value.split('/').filter(part => part)
+    const crumbs = []
+    let path = ''
+    
+    for (const part of parts) {
+      path += part + '/'
+      crumbs.push({
+        name: part,
+        path: path
+      })
+    }
+    
+    return crumbs
+  })
+
   return {
     // 状态
     files,
@@ -91,6 +129,7 @@ export const useBucketStore = defineStore('bucket', () => {
     totalFiles,
     totalSize,
     formattedTotalSize,
+    breadcrumbs,
     
     // 操作
     loadFiles,
@@ -101,5 +140,8 @@ export const useBucketStore = defineStore('bucket', () => {
     formatFileSize,
     formatDate,
     getFileIcon,
+    navigateToFolder,
+    navigateBack,
+    navigateToRoot,
   }
 })
