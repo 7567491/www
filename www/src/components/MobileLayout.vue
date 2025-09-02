@@ -43,7 +43,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 const currentTime = ref('')
 const isRefreshing = ref(false)
-let timeInterval: number | null = null
+let timeInterval: ReturnType<typeof setInterval> | null = null
 
 const emit = defineEmits<{
   refresh: []

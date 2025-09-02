@@ -24,8 +24,8 @@ class BucketService {
   private bucket: string
 
   constructor() {
-    this.accessKey = import.meta.env.VITE_S3_ACCESS_KEY
-    this.secretKey = import.meta.env.VITE_S3_SECRET_KEY
+    this.accessKey = import.meta.env.VITE_S3_ACCESS_KEY || ''
+    this.secretKey = import.meta.env.VITE_S3_SECRET_KEY || ''
     this.region = import.meta.env.VITE_S3_REGION || 'ap-south-1'
     this.endpoint = import.meta.env.VITE_S3_ENDPOINT || 'https://ap-south-1.linodeobjects.com'
     this.bucket = import.meta.env.VITE_S3_BUCKET || 'www'
